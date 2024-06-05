@@ -9,7 +9,7 @@ import 'types.dart';
 class FocusableWidget extends StatefulWidget {
   final FWidgetBuilder builder;
   final ValueChanged<bool>? onFocusChange;
-  final FWidgetTapped? onTap;
+  final VoidCallback? onTap;
   final FWidgetTapped? onUpTap;
   final FWidgetTapped? onDownTap;
   final FWidgetTapped? onLeftTap;
@@ -159,7 +159,10 @@ class _FocusableWidgetState extends State<FocusableWidget> with SingleTickerProv
   bool? _upKeyHandler(KeyEvent event) {
     switch (event.logicalKey.keyId) {
       case RemoteControlConfig.selectKeyId:
-        return widget.onTap?.call();
+        if (widget.onTap != null) {
+          widget.onTap!();
+        }
+        return true;
       case RemoteControlConfig.upKeyId:
       case RemoteControlConfig.downKeyId:
       case RemoteControlConfig.leftKeyId:

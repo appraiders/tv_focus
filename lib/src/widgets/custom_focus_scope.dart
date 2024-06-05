@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../utils/remote_control_config.dart';
+import '../utils/index.dart';
 import 'custom_focus_scope_node.dart';
 import 'types.dart';
 
@@ -74,6 +74,9 @@ class _CustomFocusScopeState extends State<CustomFocusScope> {
                 if (result != null) {
                   return result ? KeyEventResult.handled : KeyEventResult.ignored;
                 }
+                if (_focusNavigationHandler(node, event)) {
+                  return KeyEventResult.handled;
+                }
                 return KeyEventResult.ignored;
               case KeyUpEvent _:
                 if (event.logicalKey.keyId == RemoteControlConfig.backKeyId) {
@@ -101,6 +104,21 @@ class _CustomFocusScopeState extends State<CustomFocusScope> {
         return false;
       default:
         return null;
+    }
+  }
+
+  bool _focusNavigationHandler(FocusNode node, KeyEvent event) {
+    switch (event.logicalKey.keyId) {
+      case RemoteControlConfig.upKeyId:
+        return node.parentFocusScopeNode.focusInDirection(TraversalDirection.up);
+      case RemoteControlConfig.downKeyId:
+        return node.parentFocusScopeNode.focusInDirection(TraversalDirection.down);
+      case RemoteControlConfig.leftKeyId:
+        return node.parentFocusScopeNode.focusInDirection(TraversalDirection.left);
+      case RemoteControlConfig.rightKeyId:
+        return node.parentFocusScopeNode.focusInDirection(TraversalDirection.right);
+      default:
+        return false;
     }
   }
 }

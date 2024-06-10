@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:tv_focus/src/utils/extension.dart';
 
 import '../utils/focus_helper.dart';
-import '../utils/remote_control_config.dart';
 import 'types.dart';
 
 class FocusableWidget extends StatefulWidget {
@@ -76,7 +75,6 @@ class _FocusableWidgetState extends State<FocusableWidget> with SingleTickerProv
         },
         child: Focus(
           focusNode: _focusNode,
-          parentNode: widget.parentFocusNode,
           onFocusChange: (value) {
             widget.onFocusChange?.call(value);
             setState(() {
@@ -123,18 +121,18 @@ class _FocusableWidgetState extends State<FocusableWidget> with SingleTickerProv
   }
 
   bool? _manualHandler(KeyEvent event) {
-    switch (event.logicalKey.keyId) {
-      case RemoteControlConfig.selectKeyId:
+    switch (event.logicalKey) {
+      case LogicalKeyboardKey.select:
         return false;
-      case RemoteControlConfig.upKeyId:
+      case LogicalKeyboardKey.arrowUp:
         return widget.onUpTap?.call();
-      case RemoteControlConfig.downKeyId:
+      case LogicalKeyboardKey.arrowDown:
         return widget.onDownTap?.call();
-      case RemoteControlConfig.leftKeyId:
+      case LogicalKeyboardKey.arrowLeft:
         return widget.onLeftTap?.call();
-      case RemoteControlConfig.rightKeyId:
+      case LogicalKeyboardKey.arrowRight:
         return widget.onRightTap?.call();
-      case RemoteControlConfig.backKeyId:
+      case LogicalKeyboardKey.goBack:
         return false;
       default:
         return null;
@@ -142,14 +140,14 @@ class _FocusableWidgetState extends State<FocusableWidget> with SingleTickerProv
   }
 
   bool _focusNavigationHandler(FocusNode node, KeyEvent event) {
-    switch (event.logicalKey.keyId) {
-      case RemoteControlConfig.upKeyId:
+    switch (event.logicalKey) {
+      case LogicalKeyboardKey.arrowUp:
         return node.parentFocusScopeNode.focusInDirection(TraversalDirection.up);
-      case RemoteControlConfig.downKeyId:
+      case LogicalKeyboardKey.arrowDown:
         return node.parentFocusScopeNode.focusInDirection(TraversalDirection.down);
-      case RemoteControlConfig.leftKeyId:
+      case LogicalKeyboardKey.arrowLeft:
         return node.parentFocusScopeNode.focusInDirection(TraversalDirection.left);
-      case RemoteControlConfig.rightKeyId:
+      case LogicalKeyboardKey.arrowRight:
         return node.parentFocusScopeNode.focusInDirection(TraversalDirection.right);
       default:
         return false;
@@ -157,18 +155,18 @@ class _FocusableWidgetState extends State<FocusableWidget> with SingleTickerProv
   }
 
   bool? _upKeyHandler(KeyEvent event) {
-    switch (event.logicalKey.keyId) {
-      case RemoteControlConfig.selectKeyId:
+    switch (event.logicalKey) {
+      case LogicalKeyboardKey.select:
         if (widget.onTap != null) {
           widget.onTap!();
         }
         return true;
-      case RemoteControlConfig.upKeyId:
-      case RemoteControlConfig.downKeyId:
-      case RemoteControlConfig.leftKeyId:
-      case RemoteControlConfig.rightKeyId:
+      case LogicalKeyboardKey.arrowUp:
+      case LogicalKeyboardKey.arrowDown:
+      case LogicalKeyboardKey.arrowLeft:
+      case LogicalKeyboardKey.arrowRight:
         return true;
-      case RemoteControlConfig.backKeyId:
+      case LogicalKeyboardKey.goBack:
         return widget.onBackTap?.call();
       default:
         return null;

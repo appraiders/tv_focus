@@ -57,13 +57,22 @@ class _CustomFocusScopeState extends State<CustomFocusScope> {
       node: widget.node,
       onFocusChange: (value) async {
         if (value) {
-          if (!widget.saveFocus && !widget.node.children.first.hasFocus) {
+          if (!widget.saveFocus) {
             final index = widget.node.children.indexed.where((element) => element.$2.hasFocus).first.$1;
             for (int i = 0; i < index; i++) {
               widget.node.previousFocus();
             }
+          } else {
+            if (widget.node.focusedChild != null) {
+              widget.node.focusedChild?.requestFocus();
+            } else {
+              if (widget.node.hasPrimaryFocus) {
+                widget.node.children.first.requestFocus();
+              }
+            }
           }
         }
+        widget.onFocusChange?.call(value);
       },
       onKeyEvent: widget.onKeyEvent ??
           (node, event) {
@@ -71,15 +80,15 @@ class _CustomFocusScopeState extends State<CustomFocusScope> {
               case KeyDownEvent _:
               case KeyRepeatEvent _:
                 final result = _manualHandler(event);
-                if (result != null) {
-                  return result ? KeyEventResult.handled : KeyEventResult.ignored;
+                if (result == true) {
+                  return KeyEventResult.handled;
                 }
                 if (_focusNavigationHandler(node, event)) {
                   return KeyEventResult.handled;
                 }
                 return KeyEventResult.ignored;
               case KeyUpEvent _:
-                if (event.logicalKey.keyId == RemoteControlConfig.backKeyId) {
+                if (event.logicalKey == LogicalKeyboardKey.goBack) {
                   return widget.onBackTap?.call() == true ? KeyEventResult.handled : KeyEventResult.ignored;
                 }
                 return KeyEventResult.ignored;
@@ -91,31 +100,31 @@ class _CustomFocusScopeState extends State<CustomFocusScope> {
   }
 
   bool? _manualHandler(KeyEvent event) {
-    switch (event.logicalKey.keyId) {
-      case RemoteControlConfig.upKeyId:
+    switch (event.logicalKey) {
+      case LogicalKeyboardKey.arrowUp:
         return widget.onUpTap?.call();
-      case RemoteControlConfig.downKeyId:
+      case LogicalKeyboardKey.arrowDown:
         return widget.onDownTap?.call();
-      case RemoteControlConfig.leftKeyId:
+      case LogicalKeyboardKey.arrowLeft:
         return widget.onLeftTap?.call();
-      case RemoteControlConfig.rightKeyId:
+      case LogicalKeyboardKey.arrowRight:
         return widget.onRightTap?.call();
-      case RemoteControlConfig.backKeyId:
-        return false;
+      case LogicalKeyboardKey.goBack:
+        return true;
       default:
         return null;
     }
   }
 
   bool _focusNavigationHandler(FocusNode node, KeyEvent event) {
-    switch (event.logicalKey.keyId) {
-      case RemoteControlConfig.upKeyId:
+    switch (event.logicalKey) {
+      case LogicalKeyboardKey.arrowUp:
         return node.parentFocusScopeNode.focusInDirection(TraversalDirection.up);
-      case RemoteControlConfig.downKeyId:
+      case LogicalKeyboardKey.arrowDown:
         return node.parentFocusScopeNode.focusInDirection(TraversalDirection.down);
-      case RemoteControlConfig.leftKeyId:
+      case LogicalKeyboardKey.arrowLeft:
         return node.parentFocusScopeNode.focusInDirection(TraversalDirection.left);
-      case RemoteControlConfig.rightKeyId:
+      case LogicalKeyboardKey.arrowRight:
         return node.parentFocusScopeNode.focusInDirection(TraversalDirection.right);
       default:
         return false;

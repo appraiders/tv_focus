@@ -16,12 +16,11 @@ class CustomFocusScope extends StatefulWidget {
   final bool saveFocus;
   final bool autofocus;
   final KeyEventResult Function(FocusNode, KeyEvent)? onKeyEvent;
+  final String label;
 
-  final CustomFocusScopeNode node;
-
-  CustomFocusScope({
+  const CustomFocusScope({
     required this.child,
-    required String label,
+    required this.label,
     this.onFocusChange,
     this.onUpTap,
     this.onDownTap,
@@ -32,20 +31,24 @@ class CustomFocusScope extends StatefulWidget {
     this.autofocus = false,
     this.onKeyEvent,
     super.key,
-  }) : node = CustomFocusScopeNode(label: label);
+  });
 
   @override
   State<CustomFocusScope> createState() => _CustomFocusScopeState();
 }
 
 class _CustomFocusScopeState extends State<CustomFocusScope> {
+  late final CustomFocusScopeNode node;
+
   @override
   void initState() {
     super.initState();
 
+    node = CustomFocusScopeNode(label: widget.label);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.autofocus) {
-        widget.node.autofocus(widget.node.children.first);
+        node.autofocus(node.children.first);
       }
     });
   }
@@ -54,22 +57,20 @@ class _CustomFocusScopeState extends State<CustomFocusScope> {
   Widget build(BuildContext context) {
     return FocusScope(
       autofocus: widget.autofocus,
-      node: widget.node,
+      node: node,
       onFocusChange: (value) async {
         if (value) {
           if (!widget.saveFocus) {
-            final index = widget.node.children.indexed.where((element) => element.$2.hasFocus).first.$1;
+            final index = node.children.indexed.where((element) => element.$2.hasFocus).first.$1;
             for (int i = 0; i < index; i++) {
-              widget.node.previousFocus();
+              node.previousFocus();
             }
           } else {
-            if (widget.node.focusedChild != null) {
-              widget.node.focusedChild?.requestFocus();
-            } else {
-              if (widget.node.hasPrimaryFocus) {
-                widget.node.children.first.requestFocus();
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (node.children.where((element) => element.hasFocus).isEmpty) {
+                node.children.first.requestFocus();
               }
-            }
+            });
           }
         }
         widget.onFocusChange?.call(value);

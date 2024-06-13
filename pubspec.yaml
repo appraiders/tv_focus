@@ -1,6 +1,6 @@
 name: tv_focus
 description: "A project for work with focus"
-version: 0.0.2
+version: 0.0.3
 
 environment:
   sdk: ">=3.3.4 <4.0.0"

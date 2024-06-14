@@ -1,9 +1,9 @@
 name: tv_focus
 description: "A project for work with focus"
-version: 0.0.3
+version: 0.0.4
 
 environment:
-  sdk: ">=3.3.4 <4.0.0"
+  sdk: ">=3.3.3 <4.0.0"
   flutter: ">=1.17.0"
 
 dependencies:

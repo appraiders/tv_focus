@@ -2,17 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'index.dart';
 
-class CustomFocusScopeNode extends FocusScopeNode with CustomNodeMixin, CustomScopeMixin {
-  final String label;
-
-  CustomFocusScopeNode({
-    required this.label,
+class CustomFocusNode extends FocusNode with CustomNodeMixin {
+  CustomFocusNode({
     bool? isFirstFocus,
     super.debugLabel,
     super.onKeyEvent,
     super.skipTraversal,
     super.canRequestFocus,
-    super.traversalEdgeBehavior = TraversalEdgeBehavior.closedLoop,
   }) {
     isRequireFirstFocus = isFirstFocus ?? true;
   }

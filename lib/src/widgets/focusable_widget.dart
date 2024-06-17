@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:tv_focus/src/utils/extension.dart';
 
 import '../utils/focus_helper.dart';
-import 'types.dart';
+import 'index.dart';
 
 class FocusableWidget extends StatefulWidget {
   final FWidgetBuilder builder;
@@ -17,6 +17,9 @@ class FocusableWidget extends StatefulWidget {
   final FocusNode? parentFocusNode;
   final KeyEventResult Function(FocusNode, KeyEvent)? onKeyEvent;
 
+  /// set this widget as focusable on first time when parent focus scope has primary focus
+  final bool isFirstFocus;
+
   const FocusableWidget({
     required this.builder,
     this.onFocusChange,
@@ -28,6 +31,7 @@ class FocusableWidget extends StatefulWidget {
     this.onLeftTap,
     this.onRightTap,
     this.onBackTap,
+    this.isFirstFocus = false,
     super.key,
   });
 
@@ -38,14 +42,16 @@ class FocusableWidget extends StatefulWidget {
 class _FocusableWidgetState extends State<FocusableWidget> with SingleTickerProviderStateMixin {
   bool _isFocused = false;
 
-  late AnimationController _focusAnimationController;
-  late Animation<double> _animation;
+  late final AnimationController _focusAnimationController;
+  late final Animation<double> _animation;
 
-  final _focusNode = FocusNode();
+  late final CustomFocusNode _focusNode;
 
   @override
   void initState() {
     super.initState();
+
+    _focusNode = CustomFocusNode(isFirstFocus: widget.isFirstFocus);
 
     _focusAnimationController = AnimationController(
       duration: const Duration(milliseconds: 100),

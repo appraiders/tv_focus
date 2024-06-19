@@ -49,11 +49,13 @@ class _CustomFocusScopeState extends State<CustomFocusScope> {
   void initState() {
     super.initState();
 
-    _node = CustomFocusScopeNode(label: widget.label, isFirstFocus: widget.isFirstFocus);
+    _node = CustomFocusScopeNode(
+        label: widget.label, isFirstFocus: widget.isFirstFocus);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.autofocus) {
-        _node.autofocus(_node.children.firstWhere(_checkFocusNode, orElse: () => _node.children.first));
+        _node.autofocus(_node.children
+            .firstWhere(_checkFocusNode, orElse: () => _node.children.first));
       }
     });
   }
@@ -94,10 +96,14 @@ class _CustomFocusScopeState extends State<CustomFocusScope> {
                 return KeyEventResult.ignored;
               case KeyUpEvent _:
                 if (event.logicalKey == LogicalKeyboardKey.goBack) {
-                  return widget.onBackTap?.call() == true ? KeyEventResult.handled : KeyEventResult.ignored;
+                  return widget.onBackTap?.call() == true
+                      ? KeyEventResult.handled
+                      : KeyEventResult.ignored;
                 }
                 if (event.logicalKey == LogicalKeyboardKey.select) {
-                  return widget.onTap?.call() == true ? KeyEventResult.handled : KeyEventResult.ignored;
+                  return widget.onTap?.call() == true
+                      ? KeyEventResult.handled
+                      : KeyEventResult.ignored;
                 }
                 return KeyEventResult.ignored;
             }
@@ -127,27 +133,40 @@ class _CustomFocusScopeState extends State<CustomFocusScope> {
   bool _focusNavigationHandler(FocusNode node, KeyEvent event) {
     switch (event.logicalKey) {
       case LogicalKeyboardKey.arrowUp:
-        return node.parentFocusScopeNode.focusInDirection(TraversalDirection.up);
+        return node.parentFocusScopeNode
+            .focusInDirection(TraversalDirection.up);
       case LogicalKeyboardKey.arrowDown:
-        return node.parentFocusScopeNode.focusInDirection(TraversalDirection.down);
+        return node.parentFocusScopeNode
+            .focusInDirection(TraversalDirection.down);
       case LogicalKeyboardKey.arrowLeft:
-        return node.parentFocusScopeNode.focusInDirection(TraversalDirection.left);
+        return node.parentFocusScopeNode
+            .focusInDirection(TraversalDirection.left);
       case LogicalKeyboardKey.arrowRight:
-        return node.parentFocusScopeNode.focusInDirection(TraversalDirection.right);
+        return node.parentFocusScopeNode
+            .focusInDirection(TraversalDirection.right);
       default:
         return false;
     }
   }
 
-  bool _checkFocusNode(FocusNode node) => node is CustomNodeMixin && (node as CustomNodeMixin).isRequireFirstFocus;
+  bool _checkFocusNode(FocusNode node) =>
+      node is CustomNodeMixin && (node as CustomNodeMixin).isRequireFirstFocus;
 
   void _requestFirstFocus() {
-    _node.children.firstWhere(_checkFocusNode, orElse: () => _node.children.first).requestFocus();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _node.children
+          .firstWhere(_checkFocusNode, orElse: () => _node.children.first)
+          .requestFocus();
+    });
   }
 
   void _moveFocusToFirst() {
-    final startIndex = _node.children.indexed.firstWhere((node) => _checkFocusNode(node.$2), orElse: () => (0, _node.children.first)).$1;
-    final index = _node.children.indexed.where((element) => element.$2.hasFocus).first.$1;
+    final startIndex = _node.children.indexed
+        .firstWhere((node) => _checkFocusNode(node.$2),
+            orElse: () => (0, _node.children.first))
+        .$1;
+    final index =
+        _node.children.indexed.where((element) => element.$2.hasFocus).first.$1;
     for (int i = startIndex; i != index; startIndex > index ? i-- : i++) {
       startIndex > index ? _node.nextFocus() : _node.previousFocus();
     }

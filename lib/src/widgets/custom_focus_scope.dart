@@ -153,11 +153,9 @@ class _CustomFocusScopeState extends State<CustomFocusScope> {
       node is CustomNodeMixin && (node as CustomNodeMixin).isRequireFirstFocus;
 
   void _requestFirstFocus() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _node.children
-          .firstWhere(_checkFocusNode, orElse: () => _node.children.first)
-          .requestFocus();
-    });
+    _node.children
+        .firstWhere(_checkFocusNode, orElse: () => _node.children.first)
+        .requestFocus();
   }
 
   void _moveFocusToFirst() {

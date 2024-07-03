@@ -142,11 +142,15 @@ class _CustomFocusScopeState extends State<CustomFocusScope> {
   bool _checkFocusNode(FocusNode node) => node is CustomNodeMixin && (node as CustomNodeMixin).isRequireFirstFocus;
 
   void _requestFirstFocus() {
-    _node.children.firstWhere(_checkFocusNode, orElse: () => _node.children.first).requestFocus();
+    if (_node.children.isNotEmpty) {
+      _node.children.firstWhere(_checkFocusNode, orElse: () => _node.children.first).requestFocus();
+    }
   }
 
   void _moveFocusToFirst() {
-    final startIndex = _node.children.indexed.firstWhere((node) => _checkFocusNode(node.$2), orElse: () => (0, _node.children.first)).$1;
+    final startIndex = _node.children.indexed
+        .firstWhere((node) => _checkFocusNode(node.$2), orElse: () => (0, _node.children.first))
+        .$1;
     final index = _node.children.indexed.where((element) => element.$2.hasFocus).first.$1;
     for (int i = startIndex; i != index; startIndex > index ? i-- : i++) {
       startIndex > index ? _node.nextFocus() : _node.previousFocus();

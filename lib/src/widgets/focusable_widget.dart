@@ -163,6 +163,11 @@ class _FocusableWidgetState extends State<FocusableWidget> with SingleTickerProv
   bool? _upKeyHandler(KeyEvent event) {
     switch (event.logicalKey) {
       case LogicalKeyboardKey.select:
+      case LogicalKeyboardKey.open:
+      case LogicalKeyboardKey.accept:
+      case LogicalKeyboardKey.enter:
+      case LogicalKeyboardKey.open:
+      case LogicalKeyboardKey.space:
         if (widget.onTap != null) {
           widget.onTap!();
         }

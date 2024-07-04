@@ -166,7 +166,6 @@ class _FocusableWidgetState extends State<FocusableWidget> with SingleTickerProv
       case LogicalKeyboardKey.open:
       case LogicalKeyboardKey.accept:
       case LogicalKeyboardKey.enter:
-      case LogicalKeyboardKey.open:
       case LogicalKeyboardKey.space:
         if (widget.onTap != null) {
           widget.onTap!();

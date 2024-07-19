@@ -53,7 +53,9 @@ class _CustomFocusScopeState extends State<CustomFocusScope> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.autofocus) {
-        _node.autofocus(_node.children.firstWhere(_checkFocusNode, orElse: () => _node.children.first));
+        if (_node.children.isNotEmpty) {
+          _node.autofocus(_node.children.firstWhere(_checkFocusNode, orElse: () => _node.children.first));
+        }
       }
     });
   }

@@ -1,11 +1,11 @@
 mixin CustomScopeMixin {
-  bool firstFocused = true;
+  bool _firstFocus = true;
 
-  bool get isFirstFocused {
-    if (firstFocused) {
-      firstFocused = false;
-      return true;
-    }
-    return false;
+  bool get isFirstFocus {
+    return _firstFocus;
+  }
+
+  void focused() {
+    _firstFocus = false;
   }
 }

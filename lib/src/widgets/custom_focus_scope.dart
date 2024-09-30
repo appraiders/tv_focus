@@ -16,14 +16,16 @@ class CustomFocusScope extends StatefulWidget {
   final bool saveFocus;
   final bool autofocus;
   final KeyEventResult Function(FocusNode, KeyEvent)? onKeyEvent;
-  final String label;
+  final String? label;
 
   /// set this widget as focusable on first time when parent focus scope has primary focus
   final bool isFirstFocus;
 
+  final int? indexOfChildWithFirstFocus;
+
   const CustomFocusScope({
     required this.child,
-    required this.label,
+    this.label,
     this.onFocusChange,
     this.onUpTap,
     this.onDownTap,
@@ -35,6 +37,7 @@ class CustomFocusScope extends StatefulWidget {
     this.autofocus = false,
     this.isFirstFocus = false,
     this.onKeyEvent,
+    this.indexOfChildWithFirstFocus,
     super.key,
   });
 
@@ -50,14 +53,6 @@ class _CustomFocusScopeState extends State<CustomFocusScope> {
     super.initState();
 
     _node = CustomFocusScopeNode(label: widget.label, isFirstFocus: widget.isFirstFocus);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.autofocus) {
-        if (_node.children.isNotEmpty) {
-          _node.autofocus(_node.children.firstWhere(_checkFocusNode, orElse: () => _node.children.first));
-        }
-      }
-    });
   }
 
   @override
@@ -66,17 +61,22 @@ class _CustomFocusScopeState extends State<CustomFocusScope> {
       autofocus: widget.autofocus,
       node: _node,
       onFocusChange: (value) async {
-        if (value) {
-          if (!widget.saveFocus || _node.isFirstFocused) {
-            if (_node.children.where((element) => element.hasFocus).isEmpty) {
-              _requestFirstFocus();
+        if (value && _node.children.isNotEmpty) {
+          final node =
+              widget.indexOfChildWithFirstFocus != null && widget.indexOfChildWithFirstFocus! < _node.children.length
+                  ? _node.children.elementAt(widget.indexOfChildWithFirstFocus!)
+                  : _node.children.indexed.firstWhere(_checkFocusNode, orElse: () => (0, _node.children.first)).$2;
+          if (_node.isFirstFocus) {
+            if (_node.children.any((child) => child.hasFocus)) {
+              _moveFocusToStartNode(node);
             } else {
-              _moveFocusToFirst();
+              _node.autofocus(node);
             }
-          } else {
-            if (_node.children.where((element) => element.hasFocus).isEmpty) {
-              _requestFirstFocus();
-            }
+            _node.focused();
+          } else if (widget.indexOfChildWithFirstFocus != null) {
+            _moveFocusToStartNode(node);
+          } else if (!widget.saveFocus) {
+            _moveFocusToStartNode(node);
           }
         }
         widget.onFocusChange?.call(value);
@@ -141,19 +141,30 @@ class _CustomFocusScopeState extends State<CustomFocusScope> {
     }
   }
 
-  bool _checkFocusNode(FocusNode node) => node is CustomNodeMixin && (node as CustomNodeMixin).isRequireFirstFocus;
+  bool _checkFocusNode((int i, FocusNode node) a) =>
+      a.$2 is CustomNodeMixin && (a.$2 as CustomNodeMixin).isRequireFirstFocus;
 
-  void _requestFirstFocus() {
-    if (_node.children.isNotEmpty) {
-      _node.children.firstWhere(_checkFocusNode, orElse: () => _node.children.first).requestFocus();
-    }
-  }
-
-  void _moveFocusToFirst() {
-    final startIndex = _node.children.indexed
-        .firstWhere((node) => _checkFocusNode(node.$2), orElse: () => (0, _node.children.first))
+  void _moveFocusToStartNode(FocusNode startNode) {
+    final startIndex = widget.indexOfChildWithFirstFocus != null
+        ? _node.children.indexed.elementAt(widget.indexOfChildWithFirstFocus!).$1
+        : _node.children.indexed
+            .firstWhere(_checkFocusNode, orElse: () => _node.children.indexed.first)
+            .$1; //_node.children.indexed.firstWhere((node) => node.$2 == startNode).$1;
+    final index = _node.children.indexed
+        .firstWhere((element) => element.$2.hasFocus, orElse: () => _node.children.indexed.first)
         .$1;
-    final index = _node.children.indexed.where((element) => element.$2.hasFocus).first.$1;
+
+    if (startIndex == index) {
+      if (index > 0) {
+        _node.previousFocus();
+        _node.nextFocus();
+      } else {
+        _node.nextFocus();
+        _node.previousFocus();
+      }
+      return;
+    }
+
     for (int i = startIndex; i != index; startIndex > index ? i-- : i++) {
       startIndex > index ? _node.nextFocus() : _node.previousFocus();
     }

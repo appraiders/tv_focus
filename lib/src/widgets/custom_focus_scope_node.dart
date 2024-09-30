@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'index.dart';
 
 class CustomFocusScopeNode extends FocusScopeNode with CustomNodeMixin, CustomScopeMixin {
-  final String label;
+  final String? label;
 
   CustomFocusScopeNode({
-    required this.label,
+    this.label,
     bool? isFirstFocus,
     super.debugLabel,
     super.onKeyEvent,

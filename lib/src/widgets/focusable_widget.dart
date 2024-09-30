@@ -9,29 +9,31 @@ class FocusableWidget extends StatefulWidget {
   final FWidgetBuilder builder;
   final ValueChanged<bool>? onFocusChange;
   final VoidCallback? onTap;
+  final VoidCallback? onLongTap;
   final FWidgetTapped? onUpTap;
   final FWidgetTapped? onDownTap;
   final FWidgetTapped? onLeftTap;
   final FWidgetTapped? onRightTap;
   final FWidgetTapped? onBackTap;
-  final FocusNode? parentFocusNode;
   final KeyEventResult Function(FocusNode, KeyEvent)? onKeyEvent;
 
   /// set this widget as focusable on first time when parent focus scope has primary focus
   final bool isFirstFocus;
+  final bool autofocus;
 
   const FocusableWidget({
     required this.builder,
     this.onFocusChange,
-    this.parentFocusNode,
     this.onKeyEvent,
     this.onTap,
+    this.onLongTap,
     this.onUpTap,
     this.onDownTap,
     this.onLeftTap,
     this.onRightTap,
     this.onBackTap,
     this.isFirstFocus = false,
+    this.autofocus = false,
     super.key,
   });
 
@@ -51,7 +53,9 @@ class _FocusableWidgetState extends State<FocusableWidget> with SingleTickerProv
   void initState() {
     super.initState();
 
-    _focusNode = CustomFocusNode(isFirstFocus: widget.isFirstFocus);
+    _focusNode = CustomFocusNode(
+      isFirstFocus: widget.isFirstFocus,
+    );
 
     _focusAnimationController = AnimationController(
       duration: const Duration(milliseconds: 100),
@@ -62,6 +66,17 @@ class _FocusableWidgetState extends State<FocusableWidget> with SingleTickerProv
       parent: _focusAnimationController,
       curve: Curves.easeIn,
     );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.autofocus) {
+        _focusNode.requestFocus();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!_focusNode.hasPrimaryFocus) {
+            _focusNode.requestFocus();
+          }
+        });
+      }
+    });
   }
 
   @override
@@ -80,6 +95,7 @@ class _FocusableWidgetState extends State<FocusableWidget> with SingleTickerProv
           widget.onTap?.call();
         },
         child: Focus(
+          autofocus: widget.autofocus,
           focusNode: _focusNode,
           onFocusChange: (value) {
             widget.onFocusChange?.call(value);
@@ -129,6 +145,10 @@ class _FocusableWidgetState extends State<FocusableWidget> with SingleTickerProv
   bool? _manualHandler(KeyEvent event) {
     switch (event.logicalKey) {
       case LogicalKeyboardKey.select:
+        if (event is KeyRepeatEvent && widget.onLongTap != null) {
+          widget.onLongTap?.call();
+          return true;
+        }
         return false;
       case LogicalKeyboardKey.arrowUp:
         return widget.onUpTap?.call();

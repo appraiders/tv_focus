@@ -13,6 +13,10 @@ abstract class FocusHelper {
     }
   }
 
+  static bool hasLabeledFocusScopeNode(String label) {
+    return FocusManager.instance.primaryFocus!.hasLabeledFocusScopeNode(label);
+  }
+
   ///Move focus to first [FocusableWidget] on CustorFocusScope with [label]
   static bool moveToFirst(String label) {
     final node = getCustomFocusScope(label);
@@ -100,7 +104,6 @@ abstract class FocusHelper {
       return _updateFocus(newNodes.last, node);
     }
   }
-
 
   ///Move focus to CustomFocusScopeNode from [node]
   static bool _updateScopeFocus(CustomFocusScopeNode node) {

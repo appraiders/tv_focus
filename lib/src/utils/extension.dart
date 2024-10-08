@@ -18,7 +18,6 @@ extension FocusScopeNodeAdapter on FocusNode {
       return parent is CustomFocusScopeNode ? parent as CustomFocusScopeNode : parent!.parentCustomFocusScopeNode;
     } catch (e) {
       return null;
-
     }
   }
 
@@ -29,7 +28,17 @@ extension FocusScopeNodeAdapter on FocusNode {
           ? parent as CustomFocusScopeNode
           : parent!.labeledFocusScopeNode(label);
     } catch (e) {
-      throw 'Label «$label» not found on parents of this focus node';
+      throw 'Label «$label» not found on parents of current focus node\nUse «hasLabeledFocusScopeNode» before call «labeledFocusScopeNode»';
+    }
+  }
+
+  bool hasLabeledFocusScopeNode(String label) {
+    try {
+      return (parent is CustomFocusScopeNode && (parent as CustomFocusScopeNode).label == label)
+          ? true
+          : parent!.hasLabeledFocusScopeNode(label);
+    } catch (e) {
+      return false;
     }
   }
 

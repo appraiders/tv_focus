@@ -147,9 +147,7 @@ class _CustomFocusScopeState extends State<CustomFocusScope> {
   void _moveFocusToStartNode(FocusNode startNode) {
     final startIndex = widget.indexOfChildWithFirstFocus != null
         ? _node.children.indexed.elementAt(widget.indexOfChildWithFirstFocus!).$1
-        : _node.children.indexed
-            .firstWhere(_checkFocusNode, orElse: () => _node.children.indexed.first)
-            .$1; //_node.children.indexed.firstWhere((node) => node.$2 == startNode).$1;
+        : _node.children.indexed.firstWhere((node) => node.$2 == startNode).$1;
     final index = _node.children.indexed
         .firstWhere((element) => element.$2.hasFocus, orElse: () => _node.children.indexed.first)
         .$1;

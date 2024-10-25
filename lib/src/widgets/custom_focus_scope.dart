@@ -53,6 +53,14 @@ class _CustomFocusScopeState extends State<CustomFocusScope> {
     super.initState();
 
     _node = CustomFocusScopeNode(label: widget.label, isFirstFocus: widget.isFirstFocus);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_node.parent?.hasPrimaryFocus == true && widget.isFirstFocus) {
+          _node.requestFocus();
+        }
+      });
+    });
   }
 
   @override

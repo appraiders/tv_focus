@@ -126,4 +126,16 @@ abstract class FocusHelper {
 
     return true;
   }
+
+  ///Get parent CustomFocusScopeNode with `recursions`.
+  ///
+  /// 1 - gets parent of a parent
+  static CustomFocusScopeNode? getParentCustomFocusScopeNode({int recursions = 0}) {
+    if (recursions <= 0) {
+      return FocusManager.instance.primaryFocus?.parentCustomFocusScopeNode;
+    }
+    return getParentCustomFocusScopeNode(
+      recursions: recursions - 1,
+    )?.parentCustomFocusScopeNode;
+  }
 }

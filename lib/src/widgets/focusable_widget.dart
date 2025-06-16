@@ -21,7 +21,7 @@ class FocusableWidget extends StatefulWidget {
   final bool isFirstFocus;
   final bool autofocus;
   
-  /// Enable long press animation (similar to LongPressAnimation widget)
+  /// Enable long press animation
   final bool enableLongPressAnimation;
   
   /// Duration for long press animation

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:tv_focus/src/utils/extension.dart'; 
+import 'package:tv_focus/src/utils/extension.dart';
 
 import '../utils/focus_helper.dart';
 import 'index.dart';
@@ -20,13 +20,12 @@ class FocusableWidget extends StatefulWidget {
   /// set this widget as focusable on first time when parent focus scope has primary focus
   final bool isFirstFocus;
   final bool autofocus;
-  
+
   /// Enable long press animation
   final bool enableLongPressAnimation;
-  
+
   /// Duration for long press animation
   final Duration longPressAnimationDuration;
-  
 
   const FocusableWidget({
     required this.builder,
@@ -43,7 +42,6 @@ class FocusableWidget extends StatefulWidget {
     this.autofocus = false,
     this.enableLongPressAnimation = false,
     this.longPressAnimationDuration = const Duration(milliseconds: 500),
-    
     super.key,
   });
 
@@ -123,9 +121,7 @@ class _FocusableWidgetState extends State<FocusableWidget> with TickerProviderSt
     if (status == AnimationStatus.completed && _isLongPressing) {
       // Trigger long press callback
       widget.onLongTap?.call();
-      
-    
-      
+
       // Reverse the animation
       _longPressAnimationController.reverse();
       _isLongPressing = false;
@@ -140,10 +136,8 @@ class _FocusableWidgetState extends State<FocusableWidget> with TickerProviderSt
   }
 
   void _cancelLongPress() {
-    if (_isLongPressing) {
-      _isLongPressing = false;
-      _longPressAnimationController.reverse();
-    }
+    _isLongPressing = false;
+    _longPressAnimationController.reverse();
   }
 
   @override
@@ -237,28 +231,33 @@ class _FocusableWidgetState extends State<FocusableWidget> with TickerProviderSt
         }
         return false;
       case LogicalKeyboardKey.arrowUp:
-        if (event is KeyUpEvent && widget.enableLongPressAnimation) {
+        if (event is KeyUpEvent && widget.enableLongPressAnimation && _isLongPressing) {
           _cancelLongPress();
+          return true;
         }
         return widget.onUpTap?.call();
       case LogicalKeyboardKey.arrowDown:
-        if (event is KeyUpEvent && widget.enableLongPressAnimation) {
+        if (event is KeyUpEvent && widget.enableLongPressAnimation && _isLongPressing) {
           _cancelLongPress();
+          return true;
         }
         return widget.onDownTap?.call();
       case LogicalKeyboardKey.arrowLeft:
-        if (event is KeyUpEvent && widget.enableLongPressAnimation) {
+        if (event is KeyUpEvent && widget.enableLongPressAnimation && _isLongPressing) {
           _cancelLongPress();
+          return true;
         }
         return widget.onLeftTap?.call();
       case LogicalKeyboardKey.arrowRight:
-        if (event is KeyUpEvent && widget.enableLongPressAnimation) {
+        if (event is KeyUpEvent && widget.enableLongPressAnimation && _isLongPressing) {
           _cancelLongPress();
+          return true;
         }
         return widget.onRightTap?.call();
       case LogicalKeyboardKey.goBack:
-        if (event is KeyUpEvent && widget.enableLongPressAnimation) {
+        if (event is KeyUpEvent && widget.enableLongPressAnimation && _isLongPressing) {
           _cancelLongPress();
+          return true;
         }
         return false;
       default:

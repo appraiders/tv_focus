@@ -60,9 +60,11 @@ class _FocusableWidgetState extends State<FocusableWidget> with TickerProviderSt
   late final Animation<double> _scaleAnimation;
 
   late final CustomFocusNode _focusNode;
-
   // Long press state tracking
   bool _isLongPressing = false;
+
+  // NEW: suppress key up event if key is already held when focused
+  bool _shouldIgnoreKeyUpUntilReleased = false;
 
   @override
   void initState() {
@@ -72,7 +74,6 @@ class _FocusableWidgetState extends State<FocusableWidget> with TickerProviderSt
       isFirstFocus: widget.isFirstFocus,
     );
 
-    // Focus animation controller
     _focusAnimationController = AnimationController(
       duration: const Duration(milliseconds: 100),
       vsync: this,
@@ -83,7 +84,6 @@ class _FocusableWidgetState extends State<FocusableWidget> with TickerProviderSt
       curve: Curves.easeIn,
     );
 
-    // Long press animation controller
     _longPressAnimationController = AnimationController(
       duration: widget.longPressAnimationDuration,
       vsync: this,
@@ -119,10 +119,7 @@ class _FocusableWidgetState extends State<FocusableWidget> with TickerProviderSt
 
   void _onLongPressAnimationStatusChange(AnimationStatus status) {
     if (status == AnimationStatus.completed && _isLongPressing) {
-      // Trigger long press callback
       widget.onLongTap?.call();
-
-      // Reverse the animation
       _longPressAnimationController.reverse();
       _isLongPressing = false;
     }
@@ -163,6 +160,14 @@ class _FocusableWidgetState extends State<FocusableWidget> with TickerProviderSt
             });
             if (_isFocused) {
               _focusAnimationController.forward();
+
+              // Check if select/enter is currently pressed
+              final keysPressed = HardwareKeyboard.instance.logicalKeysPressed;
+              if (keysPressed.contains(LogicalKeyboardKey.select) ||
+                  keysPressed.contains(LogicalKeyboardKey.enter) ||
+                  keysPressed.contains(LogicalKeyboardKey.space)) {
+                _shouldIgnoreKeyUpUntilReleased = true;
+              }
             } else {
               _focusAnimationController.reverse();
             }
@@ -195,7 +200,6 @@ class _FocusableWidgetState extends State<FocusableWidget> with TickerProviderSt
                 _focusAnimationController,
               );
 
-              // Apply scale animation if long press animation is enabled
               if (widget.enableLongPressAnimation) {
                 child = Transform.scale(
                   scale: _scaleAnimation.value,
@@ -219,7 +223,6 @@ class _FocusableWidgetState extends State<FocusableWidget> with TickerProviderSt
           return true;
         } else if (event is KeyRepeatEvent && widget.onLongTap != null) {
           if (widget.enableLongPressAnimation) {
-            // Long press animation handles this
             return true;
           } else {
             widget.onLongTap?.call();
@@ -281,6 +284,15 @@ class _FocusableWidgetState extends State<FocusableWidget> with TickerProviderSt
   }
 
   bool? _upKeyHandler(KeyEvent event) {
+    //Suppress select/enter/space key up after focus if it was already held
+    if (_shouldIgnoreKeyUpUntilReleased &&
+        (event.logicalKey == LogicalKeyboardKey.select ||
+            event.logicalKey == LogicalKeyboardKey.enter ||
+            event.logicalKey == LogicalKeyboardKey.space)) {
+      _shouldIgnoreKeyUpUntilReleased = false;
+      return true;
+    }
+
     switch (event.logicalKey) {
       case LogicalKeyboardKey.select:
       case LogicalKeyboardKey.open:

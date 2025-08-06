@@ -146,9 +146,6 @@ class _FocusableWidgetState extends State<FocusableWidget> with TickerProviderSt
           FocusHelper.getFocus(_focusNode);
           widget.onTap?.call();
         },
-        onTapDown: widget.enableLongPressAnimation ? (_) => _startLongPress() : null,
-        onTapUp: widget.enableLongPressAnimation ? (_) => _cancelLongPress() : null,
-        onTapCancel: widget.enableLongPressAnimation ? _cancelLongPress : null,
         onLongPress: widget.enableLongPressAnimation ? null : widget.onLongTap,
         child: Focus(
           autofocus: widget.autofocus,

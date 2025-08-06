@@ -165,7 +165,9 @@ class _FocusableWidgetState extends State<FocusableWidget> with TickerProviderSt
               final keysPressed = HardwareKeyboard.instance.logicalKeysPressed;
               if (keysPressed.contains(LogicalKeyboardKey.select) ||
                   keysPressed.contains(LogicalKeyboardKey.enter) ||
-                  keysPressed.contains(LogicalKeyboardKey.space)) {
+                  keysPressed.contains(LogicalKeyboardKey.space) ||
+                  keysPressed.contains(LogicalKeyboardKey.open) ||
+                  keysPressed.contains(LogicalKeyboardKey.accept)) {
                 _shouldIgnoreKeyUpUntilReleased = true;
               }
             } else {
@@ -218,6 +220,10 @@ class _FocusableWidgetState extends State<FocusableWidget> with TickerProviderSt
   bool? _manualHandler(KeyEvent event) {
     switch (event.logicalKey) {
       case LogicalKeyboardKey.select:
+      case LogicalKeyboardKey.open:
+      case LogicalKeyboardKey.accept:
+      case LogicalKeyboardKey.enter:
+      case LogicalKeyboardKey.space:
         if (event is KeyDownEvent && widget.enableLongPressAnimation) {
           _startLongPress();
           return true;
@@ -288,7 +294,9 @@ class _FocusableWidgetState extends State<FocusableWidget> with TickerProviderSt
     if (_shouldIgnoreKeyUpUntilReleased &&
         (event.logicalKey == LogicalKeyboardKey.select ||
             event.logicalKey == LogicalKeyboardKey.enter ||
-            event.logicalKey == LogicalKeyboardKey.space)) {
+            event.logicalKey == LogicalKeyboardKey.space ||
+            event.logicalKey == LogicalKeyboardKey.open ||
+            event.logicalKey == LogicalKeyboardKey.accept)) {
       _shouldIgnoreKeyUpUntilReleased = false;
       return true;
     }

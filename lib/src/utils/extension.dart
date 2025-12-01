@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import '../widgets/custom_focus_scope_node.dart';
+import '../widgets/custom_node.dart';
 
 extension FocusScopeNodeAdapter on FocusNode {
   ///Getting parent [FocusScopeNode]
@@ -48,6 +48,26 @@ extension FocusScopeNodeAdapter on FocusNode {
       return [...parent!.parentScopeNodes, parentCustomFocusScopeNode!];
     } else {
       return [];
+    }
+  }
+
+  ///Getting child [FocusScopeNode]
+  CustomNode? get childCustomFocusNode {
+    try {
+      if (this is CustomNode) {
+        return this as CustomNode;
+      }
+      if (children.isEmpty) {
+        return null;
+      }
+      final child = children.first;
+      if (child is CustomNode) {
+        return child;
+      } else {
+        return child.childCustomFocusNode;
+      }
+    } catch (e) {
+      throw 'Child CustomFocusNode not found';
     }
   }
 }

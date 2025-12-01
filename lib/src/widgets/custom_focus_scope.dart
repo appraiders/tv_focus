@@ -150,7 +150,7 @@ class _CustomFocusScopeState extends State<CustomFocusScope> {
   }
 
   bool _checkFocusNode((int i, FocusNode node) a) =>
-      a.$2 is CustomNodeMixin && (a.$2 as CustomNodeMixin).isRequireFirstFocus;
+      a.$2 is CustomNode && (a.$2 as CustomNode).isRequireFirstFocus;
 
   void _moveFocusToStartNode(FocusNode startNode) {
     final startIndex = widget.indexOfChildWithFirstFocus != null

@@ -1,15 +1,19 @@
-import 'package:flutter/material.dart';
+part of 'custom_node.dart';
 
-import 'index.dart';
-
-class CustomFocusNode extends FocusNode with CustomNodeMixin {
+class CustomFocusNode extends FocusNode implements CustomNode {
   CustomFocusNode({
     bool? isFirstFocus,
     super.debugLabel,
     super.onKeyEvent,
     super.skipTraversal,
     super.canRequestFocus,
-  }) {
-    isRequireFirstFocus = isFirstFocus ?? true;
+  }) : isRequireFirstFocus = isFirstFocus ?? true;
+
+  @override
+  bool isRequireFirstFocus = false;
+
+  @override
+  void setIsRequireFirstFocus(bool value) {
+    isRequireFirstFocus = value;
   }
 }

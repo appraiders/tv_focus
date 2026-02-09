@@ -4,17 +4,17 @@ import 'package:tv_focus/src/utils/extension.dart';
 import '../widgets/index.dart';
 
 abstract class FocusHelper {
-  ///Get parent CustorFocusScope with [label]
+  ///Get CustorFocusScope with [label]
   static CustomFocusScopeNode getCustomFocusScope(String label) {
-    try {
-      return FocusManager.instance.primaryFocus!.labeledFocusScopeNode(label);
-    } catch (e, stackTrace) {
-      throw '$e $stackTrace';
+    final node = FocusManager.instance.rootScope.findCustomFocusScopeNode(label);
+    if (node == null) {
+      throw 'Label «$label» not found in focus tree';
     }
+    return node;
   }
 
   static bool hasLabeledFocusScopeNode(String label) {
-    return FocusManager.instance.primaryFocus!.hasLabeledFocusScopeNode(label);
+    return FocusManager.instance.rootScope.findCustomFocusScopeNode(label) != null;
   }
 
   ///Move focus to first [FocusableWidget] on CustorFocusScope with [label]
@@ -137,5 +137,29 @@ abstract class FocusHelper {
     return getParentCustomFocusScopeNode(
       recursions: recursions - 1,
     )?.parentCustomFocusScopeNode;
+  }
+
+  static CustomFocusScopeNode? getFirstFocusCustomFocusScope() {
+    final scope = getParentCustomFocusScopeNode();
+    if (scope == null) {
+      return null;
+    }
+    return _getUpperFirstFocusScope(scope) ?? scope;
+  }
+
+  static CustomFocusScopeNode? _getUpperFirstFocusScope(CustomFocusScopeNode node) {
+    final context = node.context;
+    if (context == null) {
+      return null;
+    }
+
+    final route = ModalRoute.of(context);
+    final current = (node.isRequireFirstFocus || node.hasPrimaryFocus) && route?.isCurrent == true ? node : null;
+
+    final parentScope = node.parentCustomFocusScopeNode;
+    if (parentScope == null || node.hasFocusableCustomChildren) {
+      return current;
+    }
+    return _getUpperFirstFocusScope(parentScope) ?? current;
   }
 }

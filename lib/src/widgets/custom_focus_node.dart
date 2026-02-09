@@ -1,13 +1,16 @@
 part of 'custom_node.dart';
 
 class CustomFocusNode extends FocusNode implements CustomNode {
+  @override
+  final String label;
+
   CustomFocusNode({
-    bool? isFirstFocus,
+    required this.label,
     super.debugLabel,
     super.onKeyEvent,
     super.skipTraversal,
     super.canRequestFocus,
-  }) : isRequireFirstFocus = isFirstFocus ?? true;
+  }) : isRequireFirstFocus = true;
 
   @override
   bool isRequireFirstFocus = false;
@@ -16,4 +19,7 @@ class CustomFocusNode extends FocusNode implements CustomNode {
   void setIsRequireFirstFocus(bool value) {
     isRequireFirstFocus = value;
   }
+
+  @override
+  bool get isCustomFocused => hasPrimaryFocus;
 }

@@ -13,13 +13,8 @@ extension FocusScopeNodeAdapter on FocusNode {
   }
 
   ///Getting parent [CustomFocusScopeNode]
-  CustomFocusScopeNode? get parentCustomFocusScopeNode {
-    try {
-      return parent is CustomFocusScopeNode ? parent as CustomFocusScopeNode : parent!.parentCustomFocusScopeNode;
-    } catch (e) {
-      return null;
-    }
-  }
+  CustomFocusScopeNode? get parentCustomFocusScopeNode =>
+      parent is CustomFocusScopeNode ? parent as CustomFocusScopeNode : parent?.parentCustomFocusScopeNode;
 
   ///Getting parent [CustomFocusScopeNode] with [label]
   CustomFocusScopeNode labeledFocusScopeNode(String label) {
@@ -40,6 +35,21 @@ extension FocusScopeNodeAdapter on FocusNode {
     } catch (e) {
       return false;
     }
+  }
+
+  ///Finding [CustomFocusScopeNode] with [label] in all focus tree
+  CustomFocusScopeNode? findCustomFocusScopeNode(String label) {
+    if (this is CustomFocusScopeNode && (this as CustomFocusScopeNode).label == label) {
+      return this as CustomFocusScopeNode;
+    }
+
+    for (final child in children) {
+      final node = child.findCustomFocusScopeNode(label);
+      if (node != null) {
+        return node;
+      }
+    }
+    return null;
   }
 
   ///Getting list of parents [FocusScopeNode]

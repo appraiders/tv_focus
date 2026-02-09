@@ -6,6 +6,7 @@ import '../utils/focus_helper.dart';
 import 'index.dart';
 
 class FocusableWidget extends StatefulWidget {
+  final String label;
   final FWidgetBuilder builder;
   final ValueChanged<bool>? onFocusChange;
   final VoidCallback? onTap;
@@ -17,10 +18,6 @@ class FocusableWidget extends StatefulWidget {
   final FWidgetTapped? onBackTap;
   final KeyEventResult Function(FocusNode, KeyEvent)? onKeyEvent;
 
-  /// set this widget as focusable on first time when parent focus scope has primary focus
-  final bool isFirstFocus;
-  final bool autofocus;
-
   /// Enable long press animation
   final bool enableLongPressAnimation;
 
@@ -28,6 +25,7 @@ class FocusableWidget extends StatefulWidget {
   final Duration longPressAnimationDuration;
 
   const FocusableWidget({
+    required this.label,
     required this.builder,
     this.onFocusChange,
     this.onKeyEvent,
@@ -38,8 +36,6 @@ class FocusableWidget extends StatefulWidget {
     this.onLeftTap,
     this.onRightTap,
     this.onBackTap,
-    this.isFirstFocus = false,
-    this.autofocus = false,
     this.enableLongPressAnimation = false,
     this.longPressAnimationDuration = const Duration(milliseconds: 500),
     super.key,
@@ -71,7 +67,8 @@ class _FocusableWidgetState extends State<FocusableWidget> with TickerProviderSt
     super.initState();
 
     _focusNode = CustomFocusNode(
-      isFirstFocus: widget.isFirstFocus,
+      label: widget.label,
+      debugLabel: widget.label,
     );
 
     _focusAnimationController = AnimationController(
@@ -97,17 +94,6 @@ class _FocusableWidgetState extends State<FocusableWidget> with TickerProviderSt
         curve: Curves.easeOutCubic,
       ),
     );
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.autofocus) {
-        _focusNode.requestFocus();
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!_focusNode.hasPrimaryFocus) {
-            _focusNode.requestFocus();
-          }
-        });
-      }
-    });
   }
 
   @override
@@ -148,7 +134,6 @@ class _FocusableWidgetState extends State<FocusableWidget> with TickerProviderSt
         },
         onLongPress: widget.enableLongPressAnimation ? null : widget.onLongTap,
         child: Focus(
-          autofocus: widget.autofocus,
           focusNode: _focusNode,
           onFocusChange: (value) {
             widget.onFocusChange?.call(value);

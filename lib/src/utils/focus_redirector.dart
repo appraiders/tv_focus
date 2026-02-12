@@ -9,7 +9,11 @@ class CustomFocusRedirector {
 
   bool _initialized = false;
   final Set<CustomFocusScopeNode> _activeScopes = {};
-  final Set<Animation<double>> _observingAnimations = {};
+  bool _navigationSettledCallbackScheduled = false;
+
+  NavigatorObserver createNavigatorObserver() {
+    return _FocusNavigationObserver(_scheduleFocusCheckAfterNavigation);
+  }
 
   void registerScope(CustomFocusScopeNode node) {
     _activeScopes.add(node);
@@ -36,6 +40,7 @@ class CustomFocusRedirector {
       FocusManager.instance.removeListener(_handleFocusChange);
       _initialized = false;
     }
+    _navigationSettledCallbackScheduled = false;
   }
 
   void _handleFocusChange() {
@@ -52,36 +57,14 @@ class CustomFocusRedirector {
     final primaryContext = primaryFocus.context;
     if (primaryContext != null) {
       final route = ModalRoute.of(primaryContext);
-      final animation = route?.animation;
-      final secondaryAnimation = route?.secondaryAnimation;
-
-      final isAnimating = (animation != null &&
-              (animation.status == AnimationStatus.forward || animation.status == AnimationStatus.reverse)) ||
-          (secondaryAnimation != null &&
-              (secondaryAnimation.status == AnimationStatus.forward ||
-                  secondaryAnimation.status == AnimationStatus.reverse));
-
-      if (route != null && isAnimating) {
-        final activeAnim = (animation != null &&
-                (animation.status == AnimationStatus.forward || animation.status == AnimationStatus.reverse))
-            ? animation
-            : secondaryAnimation;
-
-        if (activeAnim != null && !_observingAnimations.contains(activeAnim)) {
-          _observingAnimations.add(activeAnim);
-          activeAnim.addStatusListener((status) {
-            if (status == AnimationStatus.completed || status == AnimationStatus.dismissed) {
-              _observingAnimations.remove(activeAnim);
-              _handleFocusChange();
-            }
-          });
-        }
+      if (route != null && route.animation?.isAnimating == true) {
         return;
       }
     }
 
-    CustomFocusScopeNode? scope =
-        primaryFocus is CustomFocusScopeNode ? primaryFocus : FocusHelper.getFirstFocusCustomFocusScope();
+    CustomFocusScopeNode? scope = primaryFocus is CustomFocusScopeNode
+        ? primaryFocus
+        : FocusHelper.getFirstFocusCustomFocusScope();
 
     if (scope != null) {
       final context = scope.context;
@@ -89,7 +72,8 @@ class CustomFocusRedirector {
         final route = ModalRoute.of(context);
         if (route != null && !route.isCurrent) {
           scope = null;
-        } else if (!scope.isRequireFirstFocus && scope.isCustomChildrenRequireFocus) {
+        } else if (!scope.isRequireFirstFocus &&
+            scope.isCustomChildrenRequireFocus) {
           if (scope.hasFocusableCustomChildren) {
             return;
           } else {
@@ -120,6 +104,19 @@ class CustomFocusRedirector {
     _applyRedirect(scope);
   }
 
+  void _scheduleFocusCheckAfterNavigation() {
+    if (_navigationSettledCallbackScheduled) {
+      return;
+    }
+    _navigationSettledCallbackScheduled = true;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      SchedulerBinding.instance.endOfFrame.then((_) {
+        _navigationSettledCallbackScheduled = false;
+        _handleFocusChange();
+      });
+    });
+  }
+
   void _applyRedirect(CustomFocusScopeNode node) {
     final context = node.context;
     if (context == null) {
@@ -127,7 +124,9 @@ class CustomFocusRedirector {
     }
 
     final route = ModalRoute.of(context);
-    if ((route?.isCurrent != true || node.isCustomFocused) && !node.isRequireFirstFocus && !node.hasPrimaryFocus) {
+    if ((route?.isCurrent != true || node.isCustomFocused) &&
+        !node.isRequireFirstFocus &&
+        !node.hasPrimaryFocus) {
       return;
     }
 
@@ -154,7 +153,39 @@ class CustomFocusRedirector {
         _applyRedirect(target);
       }
     } catch (e) {
-      debugPrint('logger: CustomFocusRedirector: redirect failed for ${node.label}: $e');
+      debugPrint(
+          'logger: CustomFocusRedirector: redirect failed for ${node.label}: $e');
     }
+  }
+}
+
+class _FocusNavigationObserver extends NavigatorObserver {
+  _FocusNavigationObserver(this._onNavigationChanged);
+
+  final VoidCallback _onNavigationChanged;
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _onNavigationChanged();
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _onNavigationChanged();
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    _onNavigationChanged();
+  }
+
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _onNavigationChanged();
+  }
+
+  @override
+  void didStopUserGesture() {
+    _onNavigationChanged();
   }
 }

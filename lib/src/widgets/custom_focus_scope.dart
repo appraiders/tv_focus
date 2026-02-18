@@ -55,6 +55,14 @@ class _CustomFocusScopeState extends State<CustomFocusScope> {
   }
 
   @override
+  void didUpdateWidget(covariant CustomFocusScope oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialIndex != widget.initialIndex) {
+      _node.setInitialIndex(widget.initialIndex);
+    }
+  }
+
+  @override
   void dispose() {
     CustomFocusRedirector.instance.unregisterScope(_node);
     _node.dispose();
@@ -66,6 +74,17 @@ class _CustomFocusScopeState extends State<CustomFocusScope> {
     return FocusScope(
       node: _node,
       onFocusChange: (value) {
+        if (value && (_node.isRequireFirstFocus && _node.hasFocus)) {
+          _node.setInitialFocus();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!_node.hasFocus) {
+              _node.setIsRequireFirstFocus(true);
+            }
+          });
+        }
+        if (value && !widget.saveFocus) {
+          _node.setInitialFocus();
+        }
         widget.onFocusChange?.call(value);
       },
       onKeyEvent: widget.onKeyEvent ??

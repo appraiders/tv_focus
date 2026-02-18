@@ -140,6 +140,16 @@ class _FocusableWidgetState extends State<FocusableWidget> with TickerProviderSt
             setState(() {
               _isFocused = value;
             });
+
+            if (value && _focusNode.isRequireFirstFocus && _focusNode.hasFocus) {
+              _focusNode.setIsRequireFirstFocus(false);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!_focusNode.hasFocus) {
+                  _focusNode.setIsRequireFirstFocus(true);
+                }
+              });
+            }
+
             if (_isFocused) {
               _focusAnimationController.forward();
 

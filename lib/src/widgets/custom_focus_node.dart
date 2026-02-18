@@ -19,7 +19,4 @@ class CustomFocusNode extends FocusNode implements CustomNode {
   void setIsRequireFirstFocus(bool value) {
     isRequireFirstFocus = value;
   }
-
-  @override
-  bool get isCustomFocused => hasPrimaryFocus;
 }

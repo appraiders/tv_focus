@@ -62,20 +62,15 @@ extension FocusScopeNodeAdapter on FocusNode {
   }
 
   ///Getting child [FocusScopeNode]
-  CustomNode? get childCustomFocusNode {
+  List<CustomNode> get childrenCustomFocusNode {
     try {
       if (this is CustomNode) {
-        return this as CustomNode;
+        return [this as CustomNode];
       }
       if (children.isEmpty) {
-        return null;
+        return [];
       }
-      final child = children.first;
-      if (child is CustomNode) {
-        return child;
-      } else {
-        return child.childCustomFocusNode;
-      }
+      return children.map((child) => child.childrenCustomFocusNode).expand((element) => element).toList();
     } catch (e) {
       throw 'Child CustomFocusNode not found';
     }

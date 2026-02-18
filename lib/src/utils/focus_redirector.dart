@@ -44,64 +44,65 @@ class CustomFocusRedirector {
   }
 
   void _handleFocusChange() {
-    if (WidgetsBinding.instance.schedulerPhase != SchedulerPhase.idle) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _handleFocusChange());
-      return;
-    }
-
     final primaryFocus = FocusManager.instance.primaryFocus;
-    if (primaryFocus == null) {
+
+    final CustomFocusScopeNode? scope = primaryFocus is CustomFocusScopeNode
+        ? primaryFocus
+        : FocusHelper.getFirstFocusCustomFocusScope() ??
+            primaryFocus?.childrenCustomFocusNode.whereType<CustomFocusScopeNode>().firstOrNull;
+
+    if (scope == null) {
+      if (primaryFocus is FocusScopeNode && primaryFocus is! CustomFocusScopeNode) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _handleFocusChange());
+      }
       return;
     }
 
-    final primaryContext = primaryFocus.context;
-    if (primaryContext != null) {
-      final route = ModalRoute.of(primaryContext);
-      if (route != null && route.animation?.isAnimating == true) {
-        return;
-      }
-    }
-
-    CustomFocusScopeNode? scope = primaryFocus is CustomFocusScopeNode
-        ? primaryFocus
-        : FocusHelper.getFirstFocusCustomFocusScope();
-
-    if (scope != null) {
-      final context = scope.context;
-      if (context != null) {
-        final route = ModalRoute.of(context);
-        if (route != null && !route.isCurrent) {
-          scope = null;
-        } else if (!scope.isRequireFirstFocus &&
-            scope.isCustomChildrenRequireFocus) {
-          if (scope.hasFocusableCustomChildren) {
-            return;
+    if (scope.isRequireFirstFocus) {
+      _applyRedirect(scope);
+    } else {
+      try {
+        final customChildren = scope.customChildren;
+        final focusableCustomChildren = customChildren.where((node) => node.canRequestFocus);
+        if (focusableCustomChildren.length == 1) {
+          final node = focusableCustomChildren.first;
+          if (node is CustomFocusScopeNode) {
+            _applyRedirect(node);
           } else {
-            scope = scope.parentCustomFocusScopeNode;
+            node.requestFocus();
+          }
+          return;
+        }
+        if (customChildren.length > scope.initialIndex) {
+          final node = scope.customChildren.elementAt(scope.initialIndex);
+          if (node is CustomFocusScopeNode) {
+            _applyRedirect(node);
+          } else {
+            node.requestFocus();
+          }
+        } else {
+          if (scope.customChildren.isEmpty) {
+            return;
+          }
+          final allRequireFirstFocus = scope.customChildren.every((node) => node.isRequireFirstFocus);
+          if (!allRequireFirstFocus) {
+            return;
+          }
+          final node = scope.customChildren.firstWhere(
+            (node) => node.isRequireFirstFocus,
+            orElse: () => scope.customChildren
+                .firstWhere((node) => node.canRequestFocus, orElse: () => scope.customChildren.first),
+          );
+          if (node is CustomFocusScopeNode) {
+            _applyRedirect(node);
+          } else {
+            node.requestFocus();
           }
         }
+      } catch (e) {
+        debugPrint('handle focus change: no children require first focus in scope ${scope.label}');
       }
     }
-
-    if (scope == null) {
-      for (final s in _activeScopes.toList().reversed) {
-        final context = s.context;
-        if (context == null) {
-          continue;
-        }
-
-        final route = ModalRoute.of(context);
-        if ((route?.isCurrent ?? false) && s.isRequireFirstFocus) {
-          scope = s;
-          break;
-        }
-      }
-    }
-
-    if (scope == null) {
-      return;
-    }
-    _applyRedirect(scope);
   }
 
   void _scheduleFocusCheckAfterNavigation() {
@@ -118,28 +119,18 @@ class CustomFocusRedirector {
   }
 
   void _applyRedirect(CustomFocusScopeNode node) {
-    final context = node.context;
-    if (context == null) {
-      return;
-    }
-
-    final route = ModalRoute.of(context);
-    if ((route?.isCurrent != true || node.isCustomFocused) &&
-        !node.isRequireFirstFocus &&
-        !node.hasPrimaryFocus) {
-      return;
-    }
-
-    if (node.customChildren.isEmpty) {
-      return;
-    }
-
+    node.requestScopeFocus();
     try {
-      final target = node.customChildren.elementAtOrNull(node.initialIndex) ??
+      final target = node.isRequireFirstFocus ? node.customChildren.elementAtOrNull(node.initialIndex) ??
           node.customChildren.firstWhere(
             (n) => n.isRequireFirstFocus,
             orElse: () => node.customChildren.first,
-          );
+          ) : null;
+
+      if (target == null) {
+        node.requestFocus();
+        return;
+      }
 
       if (node.isRequireFirstFocus) {
         node.setIsRequireFirstFocus(false);
@@ -153,8 +144,7 @@ class CustomFocusRedirector {
         _applyRedirect(target);
       }
     } catch (e) {
-      debugPrint(
-          'logger: CustomFocusRedirector: redirect failed for ${node.label}: $e');
+      debugPrint('CustomFocusRedirector: redirect failed for ${node.label}: $e');
     }
   }
 }
@@ -186,6 +176,11 @@ class _FocusNavigationObserver extends NavigatorObserver {
 
   @override
   void didStopUserGesture() {
+    _onNavigationChanged();
+  }
+
+  @override
+  void didChangeTop(Route<dynamic> topRoute, Route<dynamic>? previousTopRoute) {
     _onNavigationChanged();
   }
 }

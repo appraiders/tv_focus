@@ -7,8 +7,6 @@ part 'custom_focus_scope_node.dart';
 sealed class CustomNode extends FocusNode {
   bool get isRequireFirstFocus;
 
-  bool get isCustomFocused;
-
   String get label;
 
   void setIsRequireFirstFocus(bool value);

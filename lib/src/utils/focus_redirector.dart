@@ -46,10 +46,26 @@ class CustomFocusRedirector {
   void _handleFocusChange() {
     final primaryFocus = FocusManager.instance.primaryFocus;
 
-    final CustomFocusScopeNode? scope = primaryFocus is CustomFocusScopeNode
+    CustomFocusScopeNode? scope = primaryFocus is CustomFocusScopeNode
         ? primaryFocus
         : FocusHelper.getFirstFocusCustomFocusScope() ??
             primaryFocus?.childrenCustomFocusNode.whereType<CustomFocusScopeNode>().firstOrNull;
+
+    /// Проверка что выбранный элемент находится на активной странице
+    /// Если нет, то поднимаемся по иерархии фокуса вверх, чтобы найти первый CustomFocusScopeNode на активной странице
+    if (scope?.context != null && ModalRoute.of(scope!.context!)?.isCurrent == false) {
+      CustomFocusScopeNode? node = primaryFocus?.parentCustomFocusScopeNode;
+      while (node != null) {
+        if (node.hasFocus &&
+            node.hasFocusableCustomChildren &&
+            node.context != null &&
+            ModalRoute.of(node.context!)?.isCurrent == true) {
+          scope = node;
+          break;
+        }
+        node = node.parentCustomFocusScopeNode;
+      }
+    }
 
     if (scope == null) {
       if (primaryFocus is FocusScopeNode && primaryFocus is! CustomFocusScopeNode) {
@@ -90,8 +106,8 @@ class CustomFocusRedirector {
           }
           final node = scope.customChildren.firstWhere(
             (node) => node.isRequireFirstFocus,
-            orElse: () => scope.customChildren
-                .firstWhere((node) => node.canRequestFocus, orElse: () => scope.customChildren.first),
+            orElse: () => scope!.customChildren
+                .firstWhere((node) => node.canRequestFocus, orElse: () => scope!.customChildren.first),
           );
           if (node is CustomFocusScopeNode) {
             _applyRedirect(node);
@@ -121,11 +137,13 @@ class CustomFocusRedirector {
   void _applyRedirect(CustomFocusScopeNode node) {
     node.requestScopeFocus();
     try {
-      final target = node.isRequireFirstFocus ? node.customChildren.elementAtOrNull(node.initialIndex) ??
-          node.customChildren.firstWhere(
-            (n) => n.isRequireFirstFocus,
-            orElse: () => node.customChildren.first,
-          ) : null;
+      final target = node.isRequireFirstFocus
+          ? node.customChildren.elementAtOrNull(node.initialIndex) ??
+              node.customChildren.firstWhere(
+                (n) => n.isRequireFirstFocus,
+                orElse: () => node.customChildren.first,
+              )
+          : null;
 
       if (target == null) {
         node.requestFocus();
